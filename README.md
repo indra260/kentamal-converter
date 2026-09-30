@@ -40,26 +40,45 @@ Kalau nanti ada yang hidup, tinggal ganti isi `functions/api/extract.js` — fro
 ## Arsitektur
 
 ```
-Browser ──POST /api/extract──> Pages Function ──Bearer JWT──> Cobalt
-   │                              │  (validasi URL, rate limit 15/menit/IP)
+Browser ──POST /api/extract──> Cloudflare Pages Function ──> Backend Python (yt-dlp)
+   │                              │  (validasi URL, rate limit 20/menit/IP)
    │<── { videos[], audio, title } ┘
    │
    └── klik Ambil ──> direct URL dari penyedia (file lewat penyedia, bukan lewat server kita)
 ```
 
-Tidak ada file yang disimpan. Tidak ada ffmpeg. Tidak ada bandwidth keluar dari Workers
-selain JSON metadata.
+Backend Python (`backend/main.py`) mengekstrak video/audio menggunakan `yt-dlp` langsung dari URL sumber (YouTube, TikTok, Douyin, Instagram Reels, Facebook, X, SoundCloud, Bluesky). Direct stream URL dikembalikan ke frontend, jadi tidak ada file yang disimpan dan bandwidth tetap hemat.
 
-## Deploy
+**Kenapa pakai yt-dlp?** Cobalt API v7 sudah dimatikan (Nov 2024). V10 memerlukan JWT. Dengan backend sendiri, kita punya kendali penuh tanpa bergantung pada layanan pihak ketiga.
 
-1. `git init && git add -A && git commit -m "init"`
-2. Push ke GitHub
-3. Cloudflare Pages → Create → Connect to Git → pilih repo
-4. Build command `npm run build`, output directory `dist`
-5. Environment variables: `COBALT_JWT`
-6. Deploy
+## Deploy Backend (Gratis)
 
-Functions di `functions/` otomatis terdeteksi, tidak perlu setting tambahan.
+Backend harus di-host secara publik agar bisa diakses oleh Cloudflare Pages. Pilih salah satu:
+
+| Platform | Gratis? | Catatan |
+|---|---|---|
+| **Koyeb** | Ya (Free Tier) | Tanpa kartu kredit, mudah deploy Docker |
+| **Render** | Ya (Free, sleep setelah 15m idle) | Perlu kartu untuk verifikasi |
+| **Railway** | Kredit gratis $5 bulan pertama | Cukup generous untuk MVP |
+
+### Langkah Deploy Backend (contoh: Koyeb)
+1. Buat akun di koyeb.com
+2. New Service → select Dockerfile di folder `backend/`
+3. Set env variable: `PORT=8000`
+4. Deploy → dapatkan URL seperti `https://kentamal-api.koyeb.app`
+
+### Langkah Deploy Frontend (Cloudflare Pages)
+1. Push repo ke GitHub
+2. Cloudflare Pages → Create project → Connect repository
+3. Build command: `npm run build`, output directory: `dist`
+4. Add environment variable: `EXTRACTOR_URL = https://your-backend-url/api/extract`
+5. Deploy
+
+### Langkah Deploy Frontend (alternatif, tanpa Cloudflare)
+Bisa juga deploy ke Netlify/Vercel:
+- Build command: `npm run build`
+- Publish directory: `dist`
+- Add env var: `VITE_EXTRACTOR_URL=https://your-backend-url/api/extract`
 
 ## Struktur
 
@@ -72,12 +91,17 @@ kentamal-converter/
 │   └── main.jsx
 ├── functions/api/extract.js   proxy Cobalt + rate limit + validasi URL
 ├── public/favicon.svg
-└── dist/              hasil build
+├── backend/               # NEW — Python FastAPI extractor
+│   ├── main.py           # yt-dlp extractor langsung
+│   ├── requirements.txt
+│   ├── Dockerfile         # Untuk deployment ke Render/Railway/Koyeb
+│   └── Procfile          # Untuk Railway/Heroku
+├── dist/              # hasil build
 ```
 
 ## Catatan
 
-- Rate limit 15 permintaan/menit/IP, map in-memory per isolate Workers.
+- Rate limit 20 permintaan/menit/IP, map in-memory per isolate Workers.
 - Input URL divalidasi (hanya http/https, tolak host private) supaya endpoint nggak jadi SSRF proxy.
 - `prefers-reduced-motion` dihormati: semua animasi dimatikan.
 - Mode gelap ikut `prefers-color-scheme` dan bisa ditimpa manual, disimpan di localStorage.

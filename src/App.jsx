@@ -249,7 +249,8 @@ export default function App() {
     setBusy(true)
     setRes(null)
     try {
-      const r = await fetch('/api/extract', {
+      const apiUrl = import.meta.env.VITE_EXTRACTOR_URL || '/api/extract'
+      const r = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: v }),
