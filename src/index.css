@@ -105,4 +105,25 @@
       before:bg-[linear-gradient(90deg,transparent,rgb(255_255_255/.5),transparent)]
       dark:before:bg-[linear-gradient(90deg,transparent,rgb(255_255_255/.08),transparent)];
   }
+
+  .spotlight-container {
+    --mouse-x: -1000px;
+    --mouse-y: -1000px;
+  }
+
+  .spotlight-glow {
+    background: radial-gradient(
+      600px circle at var(--mouse-x) var(--mouse-y),
+      rgb(147 197 253 / .14),
+      transparent 65%
+    );
+  }
+
+  [data-theme='dark'] .spotlight-glow {
+    background: radial-gradient(
+      600px circle at var(--mouse-x) var(--mouse-y),
+      rgb(195 228 255 / .07),
+      transparent 65%
+    );
+  }
 }
