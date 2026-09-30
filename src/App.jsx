@@ -294,7 +294,7 @@ export default function App() {
       setCopied(true)
       setTimeout(() => setCopied(false), 1800)
     } catch {
-      setToast('Gagal copy — buka link manual ya.')
+      setToast('Gagal copy - buka link manual ya.')
       setTimeout(() => setToast(''), 2400)
     }
   }
@@ -348,7 +348,7 @@ export default function App() {
             <br className="hidden sm:block" /> dalam hitungan detik.
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-pretty text-sm text-ink-secondary sm:mt-4 sm:text-base">
-            YouTube, TikTok, Douyin, Instagram Reels, Facebook, X, SoundCloud. Link dialihkan langsung — file nggak disimpan di server kami.
+            YouTube, TikTok, Douyin, Instagram Reels, Facebook, X, SoundCloud. Link dialihkan langsung - file nggak disimpan di server kami.
           </p>
         </section>
 
@@ -411,10 +411,10 @@ export default function App() {
                         }
                       }}
                       className={cx(
-                        'pill cursor-pointer transition-all',
+                        'pill cursor-pointer transition-all duration-300 ease-out',
                         isActive
-                          ? 'bg-gradient-to-r text-white font-semibold shadow-soft ' + p.color
-                          : 'hover:bg-surface-2 dark:hover:bg-white/10'
+                          ? 'bg-gradient-to-r text-white font-semibold shadow-soft scale-105 ' + p.color
+                          : 'grayscale opacity-60 hover:grayscale-0 hover:opacity-100 hover:scale-[1.03] bg-surface-2/60 dark:bg-white/[.04]'
                       )}
                     >
                       <BrandIcon type={p.icon} className="h-3.5 w-3.5" />
